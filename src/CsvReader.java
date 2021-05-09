@@ -1,35 +1,51 @@
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.*;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class CsvReader {
-    public static final String delimiter = ",";
+    public static final String delimiter = ",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)";
 
-    public void read(String csvFile) {
-        try {
-            File file = new File(csvFile);
-            FileReader fr = new FileReader(file);
-            BufferedReader br = new BufferedReader(fr);
-            Map<String, List<String>> map1 = new HashMap<String, List<String>>();
-            String line = "";
-            String[] tempArr;
-            while((line = br.readLine()) != null) {
+    public static List<Netflix> read(String csvFile) throws IOException, ParseException {
+        BufferedReader csvReader;
+        List<Netflix> MovieList = new ArrayList<>();
 
-                tempArr = line.split(delimiter);
 
-                for(String tempStr : tempArr) {
-                    System.out.println("TEMP Arr----->  "+tempStr);
-                    System.out.println();
-                }
-                System.out.println();
+        String line;
+        csvReader = new BufferedReader(new FileReader(csvFile));
+        int count = 0;
+        //Read the file line by line
+        while ((line = csvReader.readLine()) != null) {
+            //Get all Items available in the line
+            line.trim();
+            String[] listArr = line.split(delimiter);
+            if(count == 0)
+            {
+                count++;
+                continue;
             }
-            br.close();
-        } catch(IOException ioe) {
-            ioe.printStackTrace();
+            String show_id = listArr[0];
+            String type = listArr[1];
+            String title = listArr[2];
+            Set<String> director = new HashSet<>(Arrays.asList(listArr[3].split(",")));
+            Set<String> cast = new HashSet<>(Arrays.asList(listArr[4].split(",")));
+            Set<String> country = new HashSet<>(Arrays.asList(listArr[5].split(",")));
+            String release_year = listArr[7];
+            String rating = listArr[8];
+            String duration = listArr[9];
+            Set<String> listed_in = new HashSet<>(Arrays.asList(listArr[10].split(",")));
+            String description = listArr[11];
+            DateFormat format = new SimpleDateFormat("MMMM d, yyyy", Locale.ENGLISH);
+            Date date;
+            date = !listArr[6].isEmpty() ? format.parse(listArr[6].replaceAll("\"","").trim()) : null;
+
+            Netflix movie = new Netflix(show_id, type, title, director, cast, country,
+                    date,release_year,rating, duration, listed_in,description);
+            MovieList.add(movie);
+
+
         }
+        return MovieList;
     }
 }
